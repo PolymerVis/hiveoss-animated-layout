@@ -1,0 +1,253 @@
+<link rel="import" href="../neon-animation/neon-animated-pages.html">
+
+<link rel="import" href="./hiveoss-animated-grid.html">
+<link rel="import" href="./hiveoss-animated-page.html">
+
+
+<!--
+An abstraction of the neon-animated-pages with hero transitions. 
+
+This element layout sub-components into 2 views
+ - an opening view, `hiveoss-animated-grid.html`, 
+ - a drill-in view, `hiveoss-animated-page.html`.
+ 
+Only one of the view will be visible at any one time. This is controlled by 
+the property `selectedMode` 
+  - `0` for the opening view, 
+  - `1` for the drill-in view.
+
+The opening view can be used as the initial page of the app, where
+elements can be layout and then triggered to transit into the 
+drill-in view with the corresponding paired drill-in element. 
+
+The element to render in the drill-in view is controlled by the `selectedPage`
+property. This property is closely related to `triggerEleSelector` and 
+`attrForSelected`, and must be a from of the set of variables defined in 
+the `attrForSelected` attributes.
+
+Example:
+
+```
+<hiveoss-animated-layout
+  attr-for-selected="data-page"
+  trigger-ele-selector=".hiveoss-trigger"
+  selected="{{view}}"
+  selected-page="{{page}}"
+  selected-item="{{selectedItem}}">
+
+  <paper-card heading="Card Title" class="hiveoss-tile" data-page="page1">
+    <div class="card-content">Some content</div>
+    <div class="card-actions">
+      <paper-button class="hiveoss-trigger">Some action</paper-button>
+    </div>
+  </paper-card>
+
+  <h1 class="hiveoss-title">Some Title</h1>
+  <div class="hiveoss-page" data-page="page1">Some content</div>
+
+</hiveoss-animated-layout>
+
+```
+
+
+### Data Attributes
+Data attributes are used to communicate the element state between the 2 views.
+
+Attribute | Element | Description
+----------------|-------------|-------------
+`data-hiveoss-page` | Opening-view and Drill-in view elements | used to pair the 2 elements for transition
+`data-page-color` | Opening-view elements (optional) | define the color of the Drill-in foreground element (default: transparent)
+`data-bg-color` | Opening-view elements  (optional) | define the color of the Drill-in background element (default: same as opening view element)
+
+### Content Elements
+In order to identify the type of elements (opening view, or drill-in view),
+all top-level content elements must have one of the following classes.
+
+The classes `hiveoss-tile` and `hiveoss-page` are used to differentiate
+between opening view elements and drill-in view elements.
+
+The class `hiveoss-page-fixed` is used to identify static elements in the
+drill-in view. These elements will always be rendered as long as the drill-in
+view is active.
+
+Element Classname | View | Description
+----------------|-------------|----------
+`hiveoss-tile` | Opening view | persistent element in the drill-in view
+`hiveoss-page` | Drill-in view | selectable element in the drill-in view
+`hiveoss-page-fixed` | Drill-in view | persistent element in the drill-in view
+
+### Styling
+The following custom properties and mixins are available for styling:
+
+Custom property | Description | Default
+----------------|-------------|----------
+`--hiveoss-animated-page` | Mixin applied to the drill-in view card | `{}`
+`--hiveoss-animated-page-background` | Mixin applied to the drill-in view background | `{}`
+
+@demo demo/index.html
+-->
+<dom-module id="hiveoss-animated-layout">
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+
+  <template>
+    <neon-animated-pages selected="{{selected}}">
+      <hiveoss-animated-grid 
+        entry-animation="[[entryAnimation]]"
+        fg-transition="[[fgTransition]]"
+        bg-transition="[[bgTransition]]"
+        trigger-ele-selector="[[triggerEleSelector]]"
+        attr-for-selected="[[attrForSelected]]"
+        on-tile-tap="_onTileTap">
+        <content select=".hiveoss-tile"></content>
+      </hiveoss-animated-grid>
+      
+      <hiveoss-animated-page
+        id="ta-page" 
+        hero-id="hero"
+        foreground-entry-animation="[[fgTransition]]"
+        background-entry-animation="[[bgTransition]]"
+        foreground-exit-animation="[[fgExitAnimation]]"
+        background-exit-animation="[[bgExitAnimation]]"
+        selected-item="[[selectedItem]]"
+        trigger-ele-selector="[[triggerEleSelector]]"
+        attr-for-selected="{{attrForSelected}}"
+        selected="{{selectedPage}}"
+        on-card-close="_onCardClose">
+          <content select=".hiveoss-page-fixed"></content>
+          <content select=".hiveoss-page"></content>
+        </hiveoss-animated-page>
+    </neon-animated-pages>
+  </template>
+
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'hiveoss-animated-layout',
+    properties: {
+      /**
+       * selects the view to render:
+       * - opening view
+       * - drill-in view
+       */     
+      selected:{
+        type: String,
+        value: 0,
+        notify: true
+      },
+      /**
+       * return the opening view element selected
+       */     
+      selectedItem:{
+        type: Object,
+        readonly: true,
+        notify: true
+      },      
+      /**
+       * selects the drill-in element to render based on the value of its
+       * `attrForSelected` attribute.
+       */      
+      selectedPage:{
+        type: String,
+        notify: true
+      },      
+      /**
+       * selects the opening view elements or their children as the triggers
+       * for the view transition. 
+       *
+       * The value is the same format a simple selector for `querySelectorAll`.
+       * e.g. `.hiveoss-trigger` will select all elements of class *hiveoss-trigger*
+       * as the triggering elements. 
+       *
+       * These elements MUST be either the individual opening elements with the 
+       * `attrForSelected` attribute declared, or a child of these elements. 
+       */       
+      triggerEleSelector:{
+        type: String,
+        value: '.hiveoss-trigger'
+      },
+      /**
+       * identifies the elements to render from and into. 
+       *
+       * This attribute is used to pair the opening elements with the corresponding 
+       * `drill-in view` elements. This attribute must be declared at the elements
+       * for the hero animated transition. 
+       *
+       * The opening elements should either be a `triggerEleSelector` element or has
+       * one as its child. Otherwise, the transition cannot be initiated.
+       */
+      attrForSelected:{
+        type: String,
+        value: 'data-hiveoss-page'
+      },
+      /**
+       * is transition entry animation for the initial opening view elements.
+       */
+      entryAnimation:{
+        type: Object,
+        value: function(){
+          return {
+            name: 'cascaded-animation',
+            animation: 'transform-animation',
+            transformFrom: 'translateY(50%)',
+            transformTo: 'none',
+            timing: {
+              delay: 50
+            }
+          };
+        } 
+      },      
+      /**
+       * is opening view to drill in transition for the foreground.
+       */
+      fgTransition:{
+        type: Object,
+        value: function(){
+          return {name: 'hero-animation'};
+        }      
+      },
+      /**
+       * is opening view to drill in transition for the background.
+       */
+      bgTransition:{
+        type: Object,
+        value: function(){
+          return {name: 'ripple-animation'};
+        }
+      },
+      /**
+       * is drill-in view exit animation to use for the foreground.
+       */
+      fgExitAnimation:{
+        type: Object,
+        value: function(){ 
+          return {  
+            name: 'fade-out-animation'
+          };
+        }
+      },
+      /**
+       * is drill-in view exit animation to use for the background.
+       */
+      bgExitAnimation:{
+        type: Object,
+        value: function(){
+          return {name: 'fade-out-animation'};
+        }
+      }      
+    },
+    _onTileTap: function(event,detail) {
+      this.selectedPage = detail[this.attrForSelected];
+      this.selectedItem = detail.tile;
+      this.selected = 1;
+    },
+    _onCardClose: function(event) {
+      this.selected = 0;
+    }
+    
+  });
+</script>

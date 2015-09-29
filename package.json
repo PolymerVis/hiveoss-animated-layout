@@ -1,0 +1,30 @@
+{
+  "name": "hiveoss-animated-layout",
+  "version": "1.0.0",
+  "description": "A polymer element to abstract the layout of neon and hero animations between pages.",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HiveOSS/hiveoss-animated-layout.git"
+  },
+  "keywords": [
+    "polymer",
+    "element",
+    "webcomponent",
+    "neon",
+    "animation",
+    "transition"
+  ],
+  "author": "eterna2 <eterna2@hotmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/HiveOSS/hiveoss-animated-layout/issues"
+  },
+  "homepage": "https://github.com/HiveOSS/hiveoss-animated-layout",
+  "devDependencies": {
+    "hydrolysis": "^1.18.0"
+  }
+}

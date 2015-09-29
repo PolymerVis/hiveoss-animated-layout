@@ -1,0 +1,177 @@
+<link rel="import" href="../neon-animation/neon-animations.html">
+<link rel="import" href="../neon-animation/neon-shared-element-animatable-behavior.html">
+
+
+<dom-module id="hiveoss-animated-grid">
+  <style>
+    :host {
+      display: block;
+    }
+
+    ::content .hiveoss-trigger{
+      cursor: pointer;        
+    }
+
+  </style>
+
+  <template>
+    <section id="section" class="layout horizontal wrap">
+      <content select=".hiveoss-tile"></content>
+    </section>
+  </template>
+
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'hiveoss-animated-grid',
+    behaviors: [
+      Polymer.NeonSharedElementAnimatableBehavior
+    ],
+    properties: {
+      /**
+       * selects the opening view elements or their children as the triggers
+       * for the view transition. 
+       *
+       * The value is the same format a simple selector for `querySelectorAll`.
+       * e.g. `.hiveoss-trigger` will select all elements of class *hiveoss-trigger*
+       * as the triggering elements. 
+       *
+       * These elements MUST be either the individual opening elements with the 
+       * `attrForSelected` attribute declared, or a child of these elements. 
+       */       
+      triggerEleSelector:{
+        type: String,
+        value: '.hiveoss-trigger'
+      },
+      /**
+       * identifies the elements to render from and into. 
+       *
+       * This attribute is used to pair the opening elements with the corresponding 
+       * `drill-in view` elements. This attribute must be declared at the elements
+       * for the hero animated transition. 
+       *
+       * The opening elements should either be a `triggerEleSelector` element or has
+       * one as its child. Otherwise, the transition cannot be initiated.
+       */
+      attrForSelected:{
+        type: String,
+        value: 'data-hiveoss-page'
+      },
+      /**
+       * is transition entry animation to use for the foreground.
+       */
+      entryAnimation:{
+        type: Object,
+        value: function(){
+          return {
+            name: 'cascaded-animation',
+            animation: 'transform-animation',
+            transformFrom: 'translateY(50%)',
+            transformTo: 'none',
+            timing: {
+              delay: 50
+            }
+          };
+        }      
+      },     
+      /**
+       * is transition animation to use for the foreground.
+       */
+      fgTransition:{
+        type: Object,
+        value: function() {
+          return {name:'hero-animation'};
+        }
+      },
+      /**
+       * is transition animation to use for the background.
+       */
+      bgTransition:{
+        type: Object,
+        value: function() {
+          return {name:'ripple-animation'};
+        }
+      },
+      /**
+       * is the configuration object for the neon-animation. This is auto-computed
+       * based on the `foregroundAnimation` and `backgroundAnimation` properties.
+       */      
+      animationConfig: {
+        type: Object
+      },
+      _contentList:{
+        type: Array,
+        value: function(){
+          return [];
+        }
+      }
+        
+    },
+    observers:[
+      '_computeAnimationConfig(_contentList,entryAnimation,fgTransition,bgTransition)'
+    ],
+    listeners: {
+      'tap':'_onTap'
+    },
+    attached: function() {
+      var self = this;
+      self._contentList = Array.prototype.slice.call(this.querySelectorAll('.hiveoss-tile'));
+      
+      this._observer = new MutationObserver(function(mutations) {
+        self.async(function(){
+          self._contentList = Array.prototype.slice.call(this.querySelectorAll('.hiveoss-tile'));
+        });
+      });
+
+      this._observer.observe(this.$.section, {childList: true});
+
+    },
+    detached: function() {
+      this._observer.disconnect();
+    },    
+    _computeAnimationConfig: function(content,entryAnimation,fgTransition,bgTransition){     
+      fgTransition.id = 'hero';
+      fgTransition.fromPage = this;
+
+      bgTransition.id = 'ripple';
+      bgTransition.fromPage = this;
+      
+      entryAnimation.nodes = content;
+      this.animationConfig = {
+        'entry': [entryAnimation],
+        'exit': [fgTransition,bgTransition]
+      };
+    },
+    _onTap: function(event) {
+      var pos = event.detail.sourceEvent,
+        target = event.target,
+        attr = this.attrForSelected;
+      
+      if (!event.target.classList.contains(this.triggerEleSelector.slice(1))) return;
+
+      var dataPage = target.getAttribute(this.attrForSelected);
+      while (!(dataPage = target.getAttribute(this.attrForSelected))){
+        target = target.parentNode;
+      }
+ 
+      this.sharedElements = {
+        'ripple': target,
+        'hero': target
+      };
+
+      this.animationConfig['exit'][0].gesture = {
+        x: pos.x || event.pageX,
+        y: pos.y || event.pageY
+      };
+      
+
+      var detail = {
+        tile: target
+      };
+      detail[attr] = dataPage;
+      
+      this.fire('tile-tap', detail);
+    }
+  });
+</script>
