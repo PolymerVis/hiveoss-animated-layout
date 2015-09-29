@@ -1,0 +1,40 @@
+{
+  "name": "hiveoss-animated-layout",
+  "version": "1.0.0",
+  "authors": [
+    "eterna2 <eterna2@hotmail.com>"
+  ],
+  "description": "A polymer 1.0 component which abstracts the neon-animation hero transition between 2 views. The component takes any child elements and separate them into 2 views based on their classes. There is a initial load view that can comprise of any number of elements and a page view that will display a detailed view of the selected view.",
+  "main": "hiveoss-animated-layout",
+  "moduleType": [
+    "es6"
+  ],
+  "keywords": [
+    "polymer",
+    "webcomponent",
+    "neon",
+    "animation",
+    "web",
+    "animation",
+    "transition",
+    "view",
+    "layout",
+    "css",
+    "javascript",
+    "html",
+    "import"
+  ],
+  "license": "MIT",
+  "homepage": "xyz",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "neon-animation": "PolymerElements/neon-animation#~1.0.6",
+    "iron-pages": "PolymerElements/iron-pages#~1.0.3"
+  }
+}

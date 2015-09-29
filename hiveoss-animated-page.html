@@ -1,0 +1,220 @@
+<link rel="import" href="../iron-pages/iron-pages.html">
+
+<link rel="import" href="../neon-animation/neon-animations.html">
+<link rel="import" href="../neon-animation/neon-shared-element-animatable-behavior.html">
+
+
+<dom-module id="hiveoss-animated-page">
+  <style>
+    :host {
+      display: block;
+    }
+
+    #fixed {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 100vw;
+      box-sizing: border-box;
+      @apply(--hiveoss-animated-page-background);
+    }
+
+    #card {
+      position: relative;
+      box-sizing: border-box;
+      top: 10vh;
+      margin-bottom: 10vh;
+      width: 80vw;
+      height: auto;
+      overflow-y: auto;
+      @apply(--hiveoss-animated-page);
+    }
+      
+    ::content .hiveoss-trigger{
+      cursor: pointer;        
+    }
+    
+  </style>
+  
+  <template>
+    <section class="layout vertical center-center">
+      <div id="fixed" style$="[[_style.bg]]"></div>
+      <div id="card" style$="[[_style.card]]">
+        <content select=".hiveoss-page-fixed"></content>
+        <iron-pages attr-for-selected="[[attrForSelected]]" selected="[[selected]]">
+          <content select=".hiveoss-page"></content>
+        </iron-pages>
+      </div>
+    <section>
+    
+  </template>
+
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'hiveoss-animated-page',
+    behaviors: [
+      Polymer.NeonSharedElementAnimatableBehavior
+    ],
+    properties: {
+      /**
+       * selects the drill-in element to render based on the value of its
+       * `attrForSelected` attribute.
+       */      
+      selected: {
+        type: String
+      },
+      /**
+       * selects the drill-in element to render based on the value of its
+       * `attrForSelected` attribute.
+       */      
+      selectedItem: {
+        type: Object
+      },      
+      /**
+       * selects the opening view elements or their children as the triggers
+       * for the view transition. 
+       *
+       * The value is the same format a simple selector for `querySelectorAll`.
+       * e.g. `.hiveoss-trigger` will select all elements of class *hiveoss-trigger*
+       * as the triggering elements. 
+       *
+       * These elements MUST be either the individual opening elements with the 
+       * `attrForSelected` attribute declared, or a child of these elements. 
+       */       
+      triggerEleSelector:{
+        type: String,
+        value: '.hiveoss-trigger'
+      },      
+      /**
+       * identifies the elements to render from and into. 
+       *
+       * This attribute is used to pair the opening elements with the corresponding 
+       * `drill-in view` elements. This attribute must be declared at the elements
+       * for the hero animated transition. 
+       *
+       * The opening elements should either be a `triggerEleSelector` element or has
+       * one as its child. Otherwise, the transition cannot be initiated.
+       */
+      attrForSelected:{
+        type: String,
+        value: 'data-hiveoss-page'
+      },
+      sharedElements: {
+        type: Object,
+        value: function() {
+          return {
+            'hero': this.$.card,
+            'ripple': this.$.fixed
+          }
+        }
+      },
+      /**
+       * is the configuration object for the neon-animation. This is auto-computed
+       * based on the `foregroundEntryAnimation`, `backgroundEntryAnimation`,
+       * `foregroundExitAnimation` and `backgroundExitAnimation` properties.
+       */      
+      animationConfig: {
+        type: Object,
+        computed: '_computeAnimationConfig(foregroundEntryAnimation,backgroundEntryAnimation,foregroundExitAnimation,backgroundExitAnimation)'
+      },
+      /**
+       * is transition entry animation to use for the foreground.
+       */
+      foregroundEntryAnimation:{
+        type: Object,
+        value: function(){
+          return {name: 'hero-animation'};
+        }      
+      },
+      /**
+       * is transition entry animation to use for the background.
+       */
+      backgroundEntryAnimation:{
+        type: Object,
+        value: function(){
+          return {name: 'ripple-animation'};
+        }
+      },
+      /**
+       * is transition exit animation to use for the foreground.
+       */
+      foregroundExitAnimation:{
+        type: Object,
+        value: function(){ 
+          return {  
+            name: 'transform-animation',
+            transformFrom: 'none',
+            transformTo: 'translate(-100vw,0px) scale(0.9,1)'
+          };
+        }
+      },
+      /**
+       * is transition exit animation to use for the background.
+       */
+      backgroundExitAnimation:{
+        type: Object,
+        value: function(){
+          return {name: 'fade-out-animation'};
+        }
+      },
+      backgroundColor:{
+        type: String
+      },      
+      _class:{
+        type: String,
+        computed: '_computeClass(selected)'
+      },
+      _style:{
+        type: Object,
+        computed: '_computeStyle(selectedItem)'
+      },      
+      _triggerElements:{
+        type: Array
+      }
+    },
+    listeners:{
+      'tap':'_onTap'
+    },      
+    _computeAnimationConfig: function(foregroundEntryAnimation,
+      backgroundEntryAnimation,
+      foregroundExitAnimation,
+      backgroundExitAnimation){
+      
+        foregroundEntryAnimation.id = 'hero';
+        foregroundEntryAnimation.toPage = this;
+        foregroundEntryAnimation.timing = { delay: 150 };
+     
+        backgroundEntryAnimation.id = 'ripple';
+        backgroundEntryAnimation.toPage = this;
+        
+        foregroundExitAnimation.node = this.$.card;
+        backgroundExitAnimation.node = this.$.fixed;
+        
+        return {
+          'entry': [foregroundEntryAnimation, backgroundEntryAnimation],
+          'exit': [foregroundExitAnimation,backgroundExitAnimation]
+        }
+    },    
+    _computePage: function(title){
+      if (!title) return;
+      return title.toLowerCase();
+    },
+    _computeClass: function(selected) {
+      return 'animated-selected-'+selected;
+    }, 
+    _computeStyle: function(selectedItem) {
+      return {
+        card: 'background-color:'+(selectedItem.getAttribute('data-card-color') || ''),
+        bg: 'background-color:'+(selectedItem.getAttribute('data-bg-color') || window.getComputedStyle(selectedItem).backgroundColor)
+      }
+        
+    },     
+    _onTap: function(event){
+      if (event.target === this.$.fixed || event.target.classList.contains(this.triggerEleSelector.slice(1))) 
+        this.fire('card-close');
+    }
+  });
+</script>
