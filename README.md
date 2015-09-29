@@ -80,6 +80,10 @@ Custom property | Description | Default
 `--hiveoss-animated-page` | Mixin applied to the drill-in view card | `{}`
 `--hiveoss-animated-page-background` | Mixin applied to the drill-in view background | `{}`
 
-## More Details
-[Component Page](http://hiveoss.github.io/hiveoss-animated-layout/)
+## Install
+```
+bower install hiveoss-animated-layout
+```
+
+More details on the usage can be found at the [component page](http://hiveoss.github.io/hiveoss-animated-layout/).
 
