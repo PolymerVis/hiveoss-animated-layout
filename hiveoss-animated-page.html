@@ -221,7 +221,7 @@
         this.fire('card-close');
         return;
       }
-      
+      var triggerEleClassname = this._triggerEleClassname;
       event.path.some(function(d){
         if (d.classList.contains(triggerEleClassname)) {
           this.fire('card-close');
