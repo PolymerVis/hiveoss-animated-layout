@@ -109,6 +109,10 @@
         value: function(){
           return [];
         }
+      },
+      _triggerEleClassname:{
+        type: String,
+        computed: '_computeTriggerEleClassname(triggerEleSelector)'
       }
         
     },
@@ -133,6 +137,9 @@
     },
     detached: function() {
       this._observer.disconnect();
+    },
+    _computeTriggerEleClassname: function(triggerEleSelector){
+      return triggerEleSelector.slice(1);
     },    
     _computeAnimationConfig: function(content,entryAnimation,fgTransition,bgTransition){     
       fgTransition.id = 'hero';
@@ -148,14 +155,23 @@
       };
     },
     _onTap: function(event) {
-      var pos = event.detail.sourceEvent,
-        target = event.target,
-        attr = this.attrForSelected;
+      var dataPage,
+        target,
+        pos = event.detail.sourceEvent,
+        attr = this.attrForSelected,
+        triggerEleClassname = this._triggerEleClassname;
       
-      if (!event.target.classList.contains(this.triggerEleSelector.slice(1))) return;
+      event.path.some(function(d){
+        if (d.classList.contains(triggerEleClassname)) {
+          target = d;
+          return true;
+        }
+        return false;
+      });
+      
+      if (!target) return;
 
-      var dataPage = target.getAttribute(this.attrForSelected);
-      while (!(dataPage = target.getAttribute(this.attrForSelected))){
+      while (target.getAttribute && !(dataPage = target.getAttribute(this.attrForSelected))){
         target = target.parentNode;
       }
  

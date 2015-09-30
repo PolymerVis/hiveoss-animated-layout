@@ -171,8 +171,9 @@
         type: Object,
         computed: '_computeStyle(selectedItem)'
       },      
-      _triggerElements:{
-        type: Array
+      _triggerEleClassname:{
+        type: String,
+        computed: '_computeTriggerEleClassname(triggerEleSelector)'
       }
     },
     listeners:{
@@ -211,10 +212,24 @@
         bg: 'background-color:'+(selectedItem.getAttribute('data-bg-color') || window.getComputedStyle(selectedItem).backgroundColor)
       }
         
+    },  
+    _computeTriggerEleClassname: function(triggerEleSelector){
+      return triggerEleSelector.slice(1);
     },     
     _onTap: function(event){
-      if (event.target === this.$.fixed || event.target.classList.contains(this.triggerEleSelector.slice(1))) 
+      if (event.target === this.$.fixed) {
         this.fire('card-close');
+        return;
+      }
+      
+      event.path.some(function(d){
+        if (d.classList.contains(triggerEleClassname)) {
+          this.fire('card-close');
+          return true;
+        }
+        return false;
+      });
     }
+    
   });
 </script>
