@@ -11,11 +11,15 @@
     ::content .hiveoss-trigger{
       cursor: pointer;        
     }
+    
+    #section{
+      @apply(--hiveoss-animated-grid);
+    }
 
   </style>
 
   <template>
-    <section id="section" class="layout horizontal wrap">
+    <section id="section">
       <content select=".hiveoss-tile"></content>
     </section>
   </template>
