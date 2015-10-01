@@ -217,6 +217,7 @@
       return triggerEleSelector.slice(1);
     },     
     _onTap: function(event){
+      var self = this;
       if (event.target === this.$.fixed) {
         this.fire('card-close');
         return;
@@ -224,7 +225,7 @@
       var triggerEleClassname = this._triggerEleClassname;
       event.path.some(function(d){
         if (d.classList && d.classList.contains(triggerEleClassname)) {
-          this.fire('card-close');
+          self.fire('card-close');
           return true;
         }
         return false;
